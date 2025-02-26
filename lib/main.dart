@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 void main() {
   runApp(const MyApp());
@@ -160,8 +162,110 @@ class WriteScreen extends StatefulWidget {
 }
 
 class _WriteScreenState extends State<WriteScreen> {
+  late ValueNotifier<dynamic> selectImgTopLeft;
+  late ValueNotifier<dynamic> selectImgTopRight;
+  late ValueNotifier<dynamic> selectImgBottomLeft;
+  late ValueNotifier<dynamic> selectImgBottomRight;
+
+  @override
+  void initState() {
+    selectImgBottomRight = ValueNotifier(null);
+    selectImgBottomLeft = ValueNotifier(null);
+    selectImgTopLeft = ValueNotifier(null);
+    selectImgTopRight = ValueNotifier(null);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("작성화면")));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "네컷일기 작성하기",
+          style: GoogleFonts.blackHanSans(
+            textStyle: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        leading: GestureDetector(
+          child: Icon(Icons.arrow_back_ios_new, color: Colors.black),
+          onTap: () {
+            Navigator.pop(context);
+          },
+        ),
+        elevation: 0,
+        backgroundColor: Colors.white,
+      ),
+      body: Container(
+        margin: EdgeInsets.all(8),
+        color: Color(0xffC7E9AC),
+        child: Container(
+          width: double.maxFinite,
+          height: MediaQuery.of(context).size.width, // width와 같게
+          child: GridView(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              SelectedImg(selectImg: selectImgTopLeft),
+              SelectedImg(selectImg: selectImgTopRight),
+              SelectedImg(selectImg: selectImgBottomLeft),
+              SelectedImg(selectImg: selectImgBottomRight),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SelectedImg extends StatefulWidget {
+  final ValueNotifier<dynamic>? selectImg;
+  const SelectedImg({super.key, this.selectImg});
+
+  @override
+  State<SelectedImg> createState() => _SelectedImgState();
+}
+
+class _SelectedImgState extends State<SelectedImg> {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          color: Color(0xffF4F4F4),
+        ),
+        child:
+            widget.selectImg?.value == null
+                ? const Icon(Icons.image, color: Color(0xff868686))
+                : Container(
+                  height: MediaQuery.of(context).size.width,
+                  child: Image.file(widget.selectImg!.value, fit: BoxFit.cover),
+                ),
+      ),
+      onTap: () => getGalleryImage(),
+    );
+  }
+
+  void getGalleryImage() async {
+    // Todo: 갤러리에서 이미지 가지고오는 함수
+
+    var image = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 10,
+    );
+
+    if (image != null) {
+      // 이미지가 선택 된 경우
+      widget.selectImg?.value = File(image.path);
+      setState(() {});
+      return;
+    }
   }
 }
