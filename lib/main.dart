@@ -18,6 +18,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: false),
       home: MainScreen(),
+      routes: {
+        '/main': (context) => MainScreen(),
+        '/write': (context) => WriteScreen(),
+      },
     );
   }
 }
@@ -131,7 +135,7 @@ class _MainScreenState extends State<MainScreen> {
               itemBuilder:
                   (BuildContext context) => <PopupMenuEntry<String>>[
                     PopupMenuItem<String>(child: Text("수정하기"), onTap: () {}),
-                    PopupMenuItem<String>(child: Text("수정하기"), onTap: () {}),
+                    PopupMenuItem<String>(child: Text("삭제하기"), onTap: () {}),
                   ],
             ),
           ),
@@ -139,9 +143,25 @@ class _MainScreenState extends State<MainScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.black,
-        onPressed: () {},
+        onPressed: () {
+          Navigator.of(context).pushNamed('/write');
+        },
         child: Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+}
+
+class WriteScreen extends StatefulWidget {
+  const WriteScreen({super.key});
+
+  @override
+  State<WriteScreen> createState() => _WriteScreenState();
+}
+
+class _WriteScreenState extends State<WriteScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(body: Center(child: Text("작성화면")));
   }
 }
