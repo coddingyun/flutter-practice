@@ -167,6 +167,9 @@ class _WriteScreenState extends State<WriteScreen> {
   late ValueNotifier<dynamic> selectImgBottomLeft;
   late ValueNotifier<dynamic> selectImgBottomRight;
 
+  TextEditingController inputTitleController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
   @override
   void initState() {
     selectImgBottomRight = ValueNotifier(null);
@@ -198,26 +201,95 @@ class _WriteScreenState extends State<WriteScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
       ),
-      body: Container(
-        margin: EdgeInsets.all(8),
-        color: Color(0xffC7E9AC),
-        child: Container(
-          width: double.maxFinite,
-          height: MediaQuery.of(context).size.width, // width와 같게
-          child: GridView(
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 이미지 선택 위젯
+            Container(
+              margin: EdgeInsets.all(8),
+              color: Color(0xffC7E9AC),
+              child: Container(
+                width: double.maxFinite,
+                height: MediaQuery.of(context).size.width, // width와 같게
+                child: GridView(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    SelectedImg(selectImg: selectImgTopLeft),
+                    SelectedImg(selectImg: selectImgTopRight),
+                    SelectedImg(selectImg: selectImgBottomLeft),
+                    SelectedImg(selectImg: selectImgBottomRight),
+                  ],
+                ),
+              ),
             ),
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              SelectedImg(selectImg: selectImgTopLeft),
-              SelectedImg(selectImg: selectImgTopRight),
-              SelectedImg(selectImg: selectImgBottomLeft),
-              SelectedImg(selectImg: selectImgBottomRight),
-            ],
-          ),
+            // 텍스트 작성 필드
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "한 줄 일기",
+                style: GoogleFonts.blackHanSans(
+                  textStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Form(
+                key: formKey,
+                child: TextFormField(
+                  decoration: InputDecoration(
+                    hintText: "한 줄 일기를 작성해주세요 (최대 8글자)",
+                    hintStyle: GoogleFonts.blackHanSans(fontSize: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xffE1E1E1)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
+                  ),
+                  maxLength: 8,
+                  controller: inputTitleController,
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "날짜",
+                style: GoogleFonts.blackHanSans(
+                  textStyle: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            GestureDetector(
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Color(0xffe1e1e1)),
+                ),
+                child: Text(
+                  "날짜를 선택해주세요",
+                  style: GoogleFonts.blackHanSans(
+                    textStyle: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xffacacac),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
