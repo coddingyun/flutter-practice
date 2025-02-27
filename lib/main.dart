@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -170,6 +172,8 @@ class _WriteScreenState extends State<WriteScreen> {
   TextEditingController inputTitleController = TextEditingController();
   final formKey = GlobalKey<FormState>();
 
+  int selectedDate = 0; // 선택된 날짜
+
   @override
   void initState() {
     selectImgBottomRight = ValueNotifier(null);
@@ -246,6 +250,7 @@ class _WriteScreenState extends State<WriteScreen> {
               child: Form(
                 key: formKey,
                 child: TextFormField(
+                  validator: (val) => titleValidator(val),
                   decoration: InputDecoration(
                     hintText: "한 줄 일기를 작성해주세요 (최대 8글자)",
                     hintStyle: GoogleFonts.blackHanSans(fontSize: 16),
@@ -274,16 +279,55 @@ class _WriteScreenState extends State<WriteScreen> {
               ),
             ),
             GestureDetector(
+              onTap: () => _selectedDate(context),
               child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                alignment: Alignment.centerLeft,
+                width: double.maxFinite,
+                height: 56,
                 decoration: BoxDecoration(
                   border: Border.all(color: Color(0xffe1e1e1)),
                 ),
-                child: Text(
-                  "날짜를 선택해주세요",
-                  style: GoogleFonts.blackHanSans(
-                    textStyle: TextStyle(
-                      fontSize: 16,
-                      color: Color(0xffacacac),
+                child: Container(
+                  margin: EdgeInsets.only(left: 8),
+                  child:
+                      selectedDate == 0
+                          ? Text(
+                            "날짜를 선택해주세요",
+                            style: GoogleFonts.blackHanSans(
+                              textStyle: TextStyle(
+                                fontSize: 16,
+                                color: Color(0xffacacac),
+                              ),
+                            ),
+                          )
+                          : Text(
+                            DateFormat('yyyy.MM.dd').format(
+                              DateTime.fromMillisecondsSinceEpoch(selectedDate),
+                            ),
+                            style: GoogleFonts.blackHanSans(
+                              textStyle: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+              width: double.maxFinite,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+                child: Container(
+                  margin: EdgeInsets.all(16),
+                  child: Text(
+                    "저장하기",
+                    style: GoogleFonts.blackHanSans(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -293,6 +337,69 @@ class _WriteScreenState extends State<WriteScreen> {
         ),
       ),
     );
+  }
+
+  Future _selectedDate(BuildContext context) async {
+    // 날짜를 선택하는 함수
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+      initialDate: DateTime.now(),
+    );
+    if (selected != null) {
+      selectedDate = selected.millisecondsSinceEpoch;
+      setState(() {});
+    }
+  }
+
+  dynamic titleValidator(val) {
+    // 제목 유효성 검사
+    if (val.isEmpty) {
+      return "제목을 입력해주세요";
+    }
+    return null;
+  }
+
+  void validateInput() {
+    // 유효성 검사 함수
+    if (formKey.currentState!.validate() &&
+        isImgFieldValidate() &&
+        isDateValidate()) {
+      // 모두 입력이 되었으면
+      // saveDate();
+    }
+  }
+
+  bool isImgFieldValidate() {
+    // 이미지 4개가 선택되었는지 확인
+
+    bool isImgSelected =
+        selectImgTopRight.value != null &&
+        selectImgTopLeft.value != null &&
+        selectImgBottomLeft != null &&
+        selectImgBottomRight != null;
+
+    if (isImgSelected) {
+      return true;
+    }
+    final snackBar = SnackBar(content: Text("이미지를 선택해주세요"));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    return false;
+  }
+
+  bool isDateValidate() {
+    // 날짜가 선택되었는지 확인
+
+    bool isDateValidate = selectedDate != 0; // 초기화 숫자가 0이었음
+    if (isDateValidate) {
+      return true;
+    }
+    final snackBar = SnackBar(content: Text("날짜를 선택해주세요"));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+
+    return false;
   }
 }
 
@@ -339,5 +446,49 @@ class _SelectedImgState extends State<SelectedImg> {
       setState(() {});
       return;
     }
+  }
+}
+
+class DiaryModel {
+  int? id;
+  String title;
+  Uint8List imageTopLeft;
+  Uint8List imageTopRight;
+  Uint8List imageBottomLeft;
+  Uint8List imageBottomRight;
+  int date;
+
+  DiaryModel({
+    this.id,
+    required this.title,
+    required this.imageTopLeft,
+    required this.imageTopRight,
+    required this.imageBottomLeft,
+    required this.imageBottomRight,
+    required this.date,
+  });
+
+  // freezed package로 자동 생성 가능
+  factory DiaryModel.forMap(Map<dynamic, dynamic> map) {
+    return DiaryModel(
+      title: map['id'],
+      imageTopLeft: map['imageTopLeft'],
+      imageTopRight: map['imageTopRight'],
+      imageBottomLeft: map['imageBottomLeft'],
+      imageBottomRight: map['imageBottomRight'],
+      date: map['date'],
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'imageTopLeft': imageTopLeft,
+      'imageTopRight': imageTopRight,
+      'imageBottomLeft': imageBottomLeft,
+      'imageBottomRight': imageBottomRight,
+      'date': date,
+    };
   }
 }
