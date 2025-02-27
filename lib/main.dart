@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:nativewrappers/_internal/vm/lib/typed_data_patch.dart';
 
 import 'package:flutter/material.dart';
+import 'package:four_diary/database_helper.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -367,8 +368,26 @@ class _WriteScreenState extends State<WriteScreen> {
         isImgFieldValidate() &&
         isDateValidate()) {
       // 모두 입력이 되었으면
-      // saveDate();
+      saveData();
     }
+  }
+
+  void saveData() async {
+    // 일기 저장
+    DiaryModel diaryModel = DiaryModel(
+      title: inputTitleController.text,
+      imageTopLeft: await selectImgTopLeft.value!.readAsBytes(),
+      imageTopRight: await selectImgTopRight.value!.readAsBytes(),
+      imageBottomLeft: await selectImgBottomLeft.value!.readAsBytes(),
+      imageBottomRight: await selectImgBottomRight.value!.readAsBytes(),
+      date: selectedDate,
+    );
+
+    await DatabaseHelper().initDatabase();
+    await DatabaseHelper().insertInfo(diaryModel);
+
+    final snackBar = SnackBar(content: Text("일기가 저장되었습니다."));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   bool isImgFieldValidate() {
