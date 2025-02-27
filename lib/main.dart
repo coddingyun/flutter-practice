@@ -469,7 +469,7 @@ class DiaryModel {
   });
 
   // freezed package로 자동 생성 가능
-  factory DiaryModel.forMap(Map<dynamic, dynamic> map) {
+  factory DiaryModel.formMap(Map<dynamic, dynamic> map) {
     return DiaryModel(
       title: map['id'],
       imageTopLeft: map['imageTopLeft'],
